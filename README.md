@@ -109,7 +109,33 @@ An example output in `flagged_purchases.json` could be:
 
 ## Plan of attack
 
+The dependencies are as follows:
 
+1. sys: to read system inputs of data files
+2. json: to read .json files
+3. collections: python collections of data structures
+4. heapq: heap data structure
+5. math: math library
+
+The customers’ network can be built into a single class. Once we need to initialize a network by an initial batch of data, we just need to create an instance of the network
+class. In the constructor of the class, we have
+
+1. time_label: label the time order of purchasing events
+2. connections: all current friends of a customer. We use a dictionary with customer_ids as keys and set of friends as values. As customer_ids should be unique, we could use a set to store friend_ids of a customer_id.
+3. purchases: a dictionary with customer_ids as keys and corresponding purchase histories as values. For our purposes, we only need to keep up to T latest purchases of each customer_id. So we use a queue data structure in order to add new purchases and remove old purchases efficiently in O(1) time.
+4. flagged_purchases: anomalous purchases in the whole network.
+5, D: the number of degrees that defines a user's social network.
+6. T: the number of consecutive purchases made by a user's social network (not including the user's own purchases).
+
+The methods of the network class includes:
+
+1. read: read a log without any anomaly detection. This method is used in initialization of the network.
+2. read_with_anomaly: read a log with anomaly detection. This method is used in reading streams of logs. Once an anomaly is detected, it is added to the flagged_purchases.
+3. befriend: two users become friends, i.e. appear in each other’s connections.
+4. unfriend: two users cancel the connection, i.e. disappear in each other’s connections.
+5. purchase: a customer_id makes a purchase with a particular amount. In order to keep track of the time order, purchases[customer_id] is a queue of tuples (time_label, amount), which facilitate the removal of the T+1th latest purchase when new logs come in. time label will be used in get mean and standard deviation of a user’s Dth social network.
+6. getDfriends: a method to get a customer_id’s Dth degree network. This method returns the Dth degree connections in a set called connections. The implementation is by breadth-first search in the social network graph, which is a standard way of finding the shortest path between two nodes(users in the network).
+7. getstatistic: a method to compute the mean and standard deviation of the last T purchases in customer_id’s Dth degree network. First we pull up customer_id’s Dth degree network. For each connection, we check his/her purchase histories and see if it can be added to the Tth latest purchases. Here we use a heap to store T latest purchases and then we compute the mean and the standard deviation of these purchases.
 
 ## Repo Directory Structure
 
