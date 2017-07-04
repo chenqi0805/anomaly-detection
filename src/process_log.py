@@ -4,6 +4,9 @@ import json
 import collections
 import heapq
 import math
+## The following two are for optional feature
+import time
+import datetime
 # read initial batch of data
 initial_file = open(sys.argv[1])
 initial_data = []
@@ -19,6 +22,16 @@ new_data_file = open(sys.argv[2])
 for line in new_data_file:
     new_data.append(json.loads(line))
 new_data_file.close()
+
+# times_convert function used for optional feature
+def time_convert(time_str):
+    """
+    time_str(str): %Y-%m-%d %H:%M:%S in string format
+    return(float): time in seconds
+    """
+    return time.mktime(datetime.datetime.strptime(time_str,"%Y-%m-%d %H:%M:%S").timetuple())
+
+
 # build the customers network class
 class network(object):
     def __init__(self, data_set=[]):
@@ -48,7 +61,7 @@ class network(object):
         elif line['event_type']=='unfriend':
             self.unfriend(line['id1'], line['id2'])
         elif line['event_type']=='purchase':
-            self.purchase(line['id'], line['amount'])
+            self.purchase(line['id'], line['amount'], line['timestamp'])
     
     # function befriend
     def befriend(self, id1, id2):
@@ -71,13 +84,14 @@ class network(object):
         self.connections[id2].remove(id1)
     
     # function purchase: record purchase and the time order
-    def purchase(self, customer_id, amount):
+    def purchase(self, customer_id, amount, timestamp):
         """
         :customer_id(str): purchaser id
         :amount(str): amount spent in the purchase
+        :timestamp(str): timestamp string of the purchase
         :return: void
         """
-        self.purchases[customer_id].append((-self.time_label, amount))
+        self.purchases[customer_id].append((-self.time_label, amount, timestamp))
         if len(self.purchases[customer_id])>self.T:
             self.purchases[customer_id].popleft()
         self.time_label+=1
@@ -154,7 +168,7 @@ class network(object):
                           u'mean': "%.2f" %mean, u'sd': "%.2f" %sd}
                 self.flagged_purchases.append(new_line)
             
-            self.purchase(line['id'], line['amount'])
+            self.purchase(line['id'], line['amount'], line['timestamp'])
             
     # function read_stream: read stream of logs        
     def read_stream(self, data_set=[]):
@@ -165,9 +179,38 @@ class network(object):
         for line in data_set:
             self.read_with_anomaly(line)
             
+    # function get_rank: This is an optional feature to obtain the most spender
+    # in a certain period of time (in units of days). In my implementation, this
+    # feature is meaningful only if T is large enough to cover a single customer's 
+    # latest purchases in the duration.
+    def get_rank(self, curr_time, duration):
+        """
+        :curr_time(str): current timestamp
+        :duration(int): duration in units of days
+        :return: List[customer_id(str)]
+        """
+        # create a dictionary to record the total spending of each customer in the period
+        amount_record = collections.defaultdict(float)
+        # end_time in seconds
+        end_time = time_convert(curr_time)
+        # duration in seconds
+        period = duration * 24 * 60 * 60
+        
+        for customer_id in self.purchases.keys():
+            for purchase in self.purchases[customer_id]:
+                if abs(end_time-time_convert(purchase[2]))<=period:
+                    amount_record[customer_id]+=float(purchase[1])
+        # sort according to total spending
+        ranking = sorted([(amount, customer_id) for customer_id, amount in zip(amount_record.keys(),amount_record.values())],reverse = True)
+        
+        return [e[1] for e in ranking]
+            
+            
 # implement network            
 social=network(initial_data)
 social.read_stream(new_data)
+# test optional feature
+social.get_rank("2017-06-13 11:33:02",1)
 # output anomalies
 data_file = open(sys.argv[3],'w')
 for line in social.flagged_purchases:

@@ -6,8 +6,6 @@
 5. [Writing Clean, Scalable, and Well-tested Code](README.md#writing-clean-scalable-and-well-tested-code)
 6. [Repo Directory Structure](README.md#repo-directory-structure)
 7. [Testing your Directory Structure and Output Format](README.md#testing-your-directory-structure-and-output-format)
-8. [Instructions to Submit your Solution](README.md#instructions-to-submit-your-solution)
-9. [FAQ](README.md#faq)
 
 
 # Challenge Summary
@@ -105,8 +103,6 @@ An example output in `flagged_purchases.json` could be:
 
     {"event_type":"purchase", "timestamp":"2017-06-13 11:33:02", "id": "2", "amount": "1601.83", mean": "29.10", "sd": "21.46"}
 
-### Optional Features
-
 ## Plan of attack
 
 The dependencies are as follows:
@@ -116,6 +112,15 @@ The dependencies are as follows:
 3. collections: python collections of data structures
 4. heapq: heap data structure
 5. math: math library
+
+The following two libraries are used for the optional feature:
+
+6. time
+7. datetime
+
+The following function is used in optional feature;
+
+def time_convert(): convert the timestamp string into float in seconds.
 
 The customers’ network can be built into a single class. Once we need to initialize a network by an initial batch of data, we just need to create an instance of the network
 class. In the constructor of the class, we have
@@ -136,6 +141,15 @@ The methods of the network class includes:
 5. purchase: a customer_id makes a purchase with a particular amount. In order to keep track of the time order, purchases[customer_id] is a queue of tuples (time_label, amount), which facilitate the removal of the T+1th latest purchase when new logs come in. time label will be used in get mean and standard deviation of a user’s Dth social network.
 6. getDfriends: a method to get a customer_id’s Dth degree network. This method returns the Dth degree connections in a set called connections. The implementation is by breadth-first search in the social network graph, which is a standard way of finding the shortest path between two nodes(users in the network).
 7. getstatistic: a method to compute the mean and standard deviation of the last T purchases in customer_id’s Dth degree network. First we pull up customer_id’s Dth degree network. For each connection, we check his/her purchase histories and see if it can be added to the Tth latest purchases. Here we use a heap to store T latest purchases and then we compute the mean and the standard deviation of these purchases.
+8. get_rank(optional): a method to get the spending ranking of all the customers in a certain time period. The input should be the ending time and the duration. In the implementation, we pull up the purchase histories of all the customers and add up the total spending of each customer in the time window and then output the ranked list of customer_id.
+
+## Implementation
+
+Data are read from json files into lists line by line. An instance of the network class is created and initialized by the batch data. Then for the main purpose, we implement read_stream method to record anomalous logs. Last, we write these logs into ‘flagged_purchases.json’.
+
+## Optional Features
+
+We can create a spending ranking among the customers in a certain time period in the network to send out discounts for vip users. This feature is meaningful when T is large enough to cover all the purchases in the period.
 
 ## Repo Directory Structure
 
