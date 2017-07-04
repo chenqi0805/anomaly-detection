@@ -1,11 +1,7 @@
 # Table of Contents
 1. [Challenge Summary](README.md#challenge-summary)
 2. [Details of Implementation](README.md#details-of-implementation)
-3. [Anomalous Purchases](README.md#anomalous-purchases)
-4. [Sample Data](README.md#sample-data)
-5. [Writing Clean, Scalable, and Well-tested Code](README.md#writing-clean-scalable-and-well-tested-code)
-6. [Repo Directory Structure](README.md#repo-directory-structure)
-7. [Testing your Directory Structure and Output Format](README.md#testing-your-directory-structure-and-output-format)
+3. [Repo Directory Structure](README.md#repo-directory-structure)
 
 
 # Challenge Summary
@@ -120,7 +116,7 @@ The following two libraries are used for the optional feature:
 
 The following function is used in optional feature;
 
-def time_convert(): convert the timestamp string into float in seconds.
+def time_convert(timestamp): convert the timestamp string into float in seconds.
 
 The customers’ network can be built into a single class. Once we need to initialize a network by an initial batch of data, we just need to create an instance of the network
 class. In the constructor of the class, we have
